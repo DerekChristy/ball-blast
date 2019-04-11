@@ -60,15 +60,20 @@
         });
         // for mobile touch
         canvas.addEventListener('touchmove', function(e) {
+            console.log('touchmove');
             e.preventDefault();
-            var touches = e.changedTouches;
-            for(var i = 0; i < touches.length; i++) {
-                var idx = ongoingTouchIndexById(touches[i].identifier);
-                if(idx >= 0) {
-                    cannon.x = ongoingTouches[idx].pageX - cannon.width/2 - 28;
-                }
-            }
-        });
+            mouseDown = true;
+            var touch = e.touches[0];
+            var mouseEvent = new MouseEvent("mousemove", {
+                clientX: touch.clientX,
+                clientY: touch.clientY 
+            });
+            canvas.dispatchEvent(mouseEvent);
+        }, false);
+
+        canvas.addEventListener('touchend', function(e) {
+            mouseDown = false;
+        }, false);
 
     };
 
