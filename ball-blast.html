@@ -1,9 +1,12 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <title>Shooting</title>
+    <meta name="Description" content="Author: Derek Christy Joseph, Category: Games, Title: Ball Blast, html5 javascript ">
     <meta name="viewport" content="width=device-width, initial-scale=1.0,user-scalable=no, maximum-scale=1, user-scalable=0"/>      
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="manifest.json" />
 </head>
 <script>
     var canvas, ctx, firing, mouseDown, cannon;
@@ -181,7 +184,7 @@
             var obstical = obsticals[i];
             if((obstical.y+obstical.radius >= cannon.y+20)
             && (obstical.x >= cannon.x+10)
-            && (obstical.x) <= (cannon.x + cannon.width+45)) {
+            && (obstical.x) <= (cannon.x + cannon.width+43)) {
                 gameOver = true;
 
                 if(score >= hiScore)
@@ -249,7 +252,7 @@
     }
 
     function addObstical() {
-        var x = randomFromTo(150, canvas.width - 150);
+        var x = randomFromTo(150, canvas.width - 250);
         var radius = randomFromTo(20, 50);
         var health = randomFromTo(100, 1000);
         var color = setColor(health);
