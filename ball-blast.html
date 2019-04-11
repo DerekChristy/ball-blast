@@ -1,0 +1,332 @@
+<html>
+<head>
+    <title>Shooting</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0,user-scalable=no, maximum-scale=1, user-scalable=0"/>      
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+</head>
+<script>
+    var canvas, ctx, firing, mouseDown, cannon;
+    var FPS = 50;
+    var bullets = [];
+    var obsticals = [];
+    var base = 100;
+    var gameOver = false;
+    var score = 0;
+    var hiScore = 0;
+    var cannonSprite;
+    
+
+    window.onload = function(){
+        canvas = document.getElementById("canvas");
+        //window.addEventListener('resize', resizeCanvas, false);
+        //window.addEventListener('orientationchange', resizeCanvas, false);
+        resizeCanvas();
+        ctx = canvas.getContext("2d");
+        cannon = new Cannon();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        // sprite
+        cannonSprite = document.getElementById("cannon");
+        
+        // main loop
+        setInterval(update, 1000/FPS);
+        addObstical();
+
+        // spawning obsticals
+        setInterval(addObstical, 5000);
+
+        canvas.addEventListener('mousedown', function(e){
+            mouseDown = true;
+        });
+
+        canvas.addEventListener('mousemove', function(e){
+            mouse = getMousePos(canvas, e);
+            cannon.x = mouse.x - cannon.width/2 - 28;
+        });
+
+        canvas.addEventListener('mouseup', function(e){
+            mouseDown = false;
+
+            if(gameOver) {
+                console.log("gameover");
+                bullets = [];
+                obsticals = [];
+                addObstical();
+                setTimeout(gameOverFalse, 5000);
+                
+            }
+
+        });
+
+    };
+
+    function getMousePos(canvas, evt) {
+        var rect = canvas.getBoundingClientRect();
+        return {
+            x: evt.clientX - rect.left,
+            y: evt.clientY - rect.top
+        };
+    }
+
+    function resizeCanvas() {
+        canvas.width = document.body.clientWidth;
+        canvas.heigh = document.body.clientHeight;
+    }
+
+    function update(){
+        if(gameOver) {
+            drawGameOver();
+        } else {
+            draw();
+        }
+    }
+
+    function draw(){
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        drawScore();
+
+        if(mouseDown){
+            fire(cannon.x+49);
+        }
+
+        drawCannon();
+
+        // drawing/updating bullets
+        for(var i = 0; i < bullets.length; i++) {
+            var bullet = bullets[i];
+            // if bullet goes out of the canvas then delete it
+            if(bullet.x > canvas.width || bullet.y > canvas.height || bullet.x < 0 || bullet.y < 0) {
+                bullets.splice(i, 1);             
+            } else {
+                bullet.y -= bullet.vel;
+                drawBullet(bullet);
+            }
+        }         
+            
+        // drawing/updating obsticals
+        for(var i = 0; i < obsticals.length; i++){
+            var obstical = obsticals[i];
+            if(obstical.health > 0) {
+                
+                // bounce
+                //only bottom
+                if((obstical.y+obstical.radius) >= (canvas.height-base+40))
+                    obstical.velY = -obstical.velY;
+                //left right
+                if((obstical.x+obstical.radius) >= canvas.width || (obstical.x-obstical.radius) <= 0)
+                    obstical.velX = -obstical.velX;    
+                
+                // gravity
+                if(obstical.y < (canvas.height-base))
+                    obstical.velY += 0.22;
+                
+                // extra velocity to bounce forever
+                if((obstical.y+obstical.radius > canvas.height-base) && obstical.velY < 2)
+                    obstical.velY -=1;
+
+                // friction
+                obstical.velX -= obstical.velX * 0.001;
+                obstical.velY -= obstical.velY * 0.01;
+
+                obstical.x += obstical.velX;
+                obstical.y += obstical.velY;
+
+                obstical.color = setColor(obstical.health);
+
+                drawObstical(obstical);
+            }
+            else
+                obsticals.splice(i, 1);               
+        }
+
+        // Checking collision of bullets and obsticals
+        for(var i = 0; i < obsticals.length; i++) {
+            var obstical = obsticals[i];
+            for(var j = 0; j < bullets.length; j++) {
+                
+                var bullet = bullets[j];
+                var dx = obstical.x - bullet.x;
+                var dy = obstical.y - bullet.y;
+                var radii = obstical.radius + bullet.radius;
+                
+                if((dx*dx) + (dy*dy) <= (radii*radii)) {    
+                    obstical.health -= 4;
+                    bullets.splice(i, 1);
+                    score += 1;
+                }
+            }
+        }
+
+        // Checking collision of obstical and cannon
+        for(var i = 0; i < obsticals.length; i++) {
+            var obstical = obsticals[i];
+            if((obstical.y+obstical.radius >= cannon.y+20)
+            && (obstical.x >= cannon.x+10)
+            && (obstical.x) <= (cannon.x + cannon.width+45)) {
+                gameOver = true;
+
+                if(score >= hiScore)
+                    hiScore = score;
+                
+            }
+        }
+        
+    }
+
+    function drawBullet(bullet) {
+        ctx.beginPath();
+        ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI*2);
+        ctx.fillStyle = "#444444";
+        ctx.fill();
+    }
+
+    function fire(x) {
+        var bullet = new Bullet(x);
+        bullets.push(bullet);
+    }
+
+    function Bullet(x) {
+        this.x = x;
+        this.y = cannon.y+20;
+        this.radius = 4;
+        this.vel = 10;
+    }
+
+    function drawCannon() {
+        ctx.beginPath();
+        //ctx.fillStyle = "#000000";
+        //ctx.fillRect(cannon.x, cannon.y, cannon.width, cannon.heigh);
+        ctx.drawImage(cannonSprite, cannon.x, cannon.y);
+    }
+
+    function Cannon() {
+        this.x = canvas.width/2;
+        this.y = canvas.height - base-50;
+        this.heigh = 40;
+        this.width = 40;
+        this.center = this.x + this.width/2;
+    }
+
+    function Obstical(x, y, radius, health, color) {
+        this.x = x;
+        this.y = y;
+        this.radius = radius;
+        this.width = 30;
+        this.height = 30;
+        this.color = color;
+        this.health = health;
+        this.velX = 5;
+        this.velY = 5;
+    }
+
+    function drawObstical(obstical) {
+        ctx.beginPath();
+        ctx.fillStyle = obstical.color;
+        ctx.arc(obstical.x, obstical.y, obstical.radius, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "15px Arial";
+        ctx.fillText(obstical.health, obstical.x, obstical.y);
+    }
+
+    function addObstical() {
+        var x = randomFromTo(150, canvas.width - 150);
+        var radius = randomFromTo(20, 50);
+        var health = randomFromTo(100, 1000);
+        var color = setColor(health);
+        var obstical = new Obstical(x, -20, radius, health, color);
+        obsticals.push(obstical);
+    }
+
+    function drawScore() {
+        ctx.beginPath();
+        ctx.fillStyle = "#000000";
+        ctx.font = "15px Arial";
+        ctx.fillText("SCORE:", canvas.width-97, 15);
+        ctx.fillRect(canvas.width-62, 5, 34, 18);
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "15px Arial";
+        ctx.fillText(score, canvas.width-45, 15);
+    }
+
+    function drawGameOver() {
+        ctx.beginPath();
+        ctx.fillStyle = "#000000";
+        ctx.font = "15px Arial";
+        ctx.fillText("HI-SCORE: ", canvas.width/2-20, 205);
+        ctx.fillText(hiScore, canvas.width/2+40, 205);
+        ctx.font = "50px Arial";
+        ctx.fillText(score, canvas.width/2, 250);
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(canvas.width/2-100, 272, 200, 50);
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "30px Arial";
+        ctx.fillText("GAME OVER", canvas.width/2, 300);
+        ctx.fillStyle = "#555555";
+        ctx.font = "15px Arial";
+        ctx.fillText("game will restart after 5 seconds...", canvas.width/2, 350);
+    }
+
+    function gameOverFalse(){
+        gameOver = false;
+        score = 0;
+    }
+
+    function randomFromTo(x, y) {
+        return Math.floor(Math.random()*y) + x;
+    }
+
+    function setColor(health) {
+        if(health <= 200)
+            return "#85ef47"; // green
+        if(health > 200 && health <= 400)
+            return "#00d1cd"; // light blue
+        if(health > 400 && health <= 600) 
+            return "#1965cf"; // blue
+        if(health > 600 && health <= 800)
+            return "#dd296e"; // pink
+        else
+            return "#d31a1a"; // red
+    }
+
+</script>
+<style>
+    html{
+        overflow: hidden;
+    }
+    body {
+        text-align: center;
+        overflow: hidden;
+        margin: 0; 
+        padding: 0;
+    }
+    
+    #container {
+        display: block;
+       
+   }
+    canvas {
+        display: block;
+        border: 1px solid black;
+        background-image: url("background2.png");
+        background-repeat: repeat-x;
+    }
+    @media (max-width: 640) {
+        canvas {
+            background-image: url("background-potrait.png");
+        }
+    }
+</style>
+<body>
+    <div>
+        <h1>BALL BLAST</h1>
+    </div>
+    <div id="container">
+        <canvas id="canvas" width="800" height="600"></canvas>
+    </div>
+    <img id="cannon" width="100" height="100" src="Cannon-sprite.png" style="display: none">
+</body>
+</html>
