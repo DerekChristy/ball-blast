@@ -3,7 +3,6 @@
     "description": "A ball shooting game.",
     "short_name": "Ball Blast",
     "display": "fullscreen",
-    "orientation": "potrait",
     "start_url": "/",
     "icons": [
         {
