@@ -20,7 +20,8 @@
     var hiScore = 0;
     var cannonSprite;
     var state = 0;
-    
+    var count=0;
+    var obsticalSpawn;
 
     window.onload = function(){
         state = 1;
@@ -35,12 +36,12 @@
         // sprite
         cannonSprite = document.getElementById("cannon");
         
+        addObstical();
         // main loop
         setInterval(update, 1000/FPS);
-        addObstical();
-
+        
         // spawning obsticals
-        setInterval(addObstical, 4000);
+        
 
         canvas.addEventListener('mousedown', function(e){
             mouseDown = true;
@@ -53,15 +54,20 @@
 
         canvas.addEventListener('mouseup', function(e) {
             mouseDown = false;
-            if(state==1)
+            if(state==1){
                 state = 3;
+                obsticalSpawn = setInterval(addObstical, 5000);
+            }
+
             if(gameOver) {
                 console.log("gameover");
                 bullets = [];
                 obsticals = [];
                 addObstical();
-                gameOverFalse();
-                
+                gameOver = false;
+                score = 0;
+                state = 1;
+                clearInterval(obsticalSpawn);
             }
 
         });
@@ -99,7 +105,7 @@
 
     function update(){
         switch(state){
-            case 1: introScreen();
+            case 1: introScreen(); count++;
                     break;
             case 2: drawGameOver();
                     break;
@@ -293,12 +299,6 @@
         ctx.fillStyle = "#555555";
     }
 
-    function gameOverFalse(){
-        gameOver = false;
-        score = 0;
-        state = 1;
-    }
-
     function introScreen() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.beginPath();
@@ -343,17 +343,14 @@
         display: block;
        
    }
+
     canvas {
         display: block;
         border: 1px solid black;
         background-image: url("background2.png");
         background-repeat: repeat-x;
     }
-    @media (max-width: 640) {
-        canvas {
-            background-image: url("background-potrait.png");
-        }
-    }
+    
 </style>
 <body>
     <div>
