@@ -10,6 +10,10 @@
     <link rel="icon" sizes="512x512" href="favicon.png"/>
 </head>
 <script>
+    navigator.serviceWorker && navigator.serviceWorker.register('./sw.js').then(function(registration) {
+        console.log('Excellent, registered with scope: ', registration.scope);
+    });
+    
     var canvas, ctx, firing, mouseDown, cannon;
     var FPS = 50;
     var bullets = [];
@@ -188,9 +192,9 @@
                     bullets.splice(i, 1);
                     score += 1;
                     // decrease size on collision
-                if(obstical.radius > 25) {
-                    obsticals[i].radius -= obstical.radius*0.005;
-                }
+                    if(obstical.radius > 25) {
+                        obsticals[i].radius -= obstical.radius*0.005;
+                    }
                 }
 
                 
@@ -257,7 +261,10 @@
         this.height = 30;
         this.color = color;
         this.health = health;
-        this.velX = 5;
+        if(randomFromTo(-1,1) < 0)
+            this.velX = 5;
+        else
+            this.velX = -5;    
         this.velY = 5;
     }
 
