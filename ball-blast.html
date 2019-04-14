@@ -19,9 +19,11 @@
     var score = 0;
     var hiScore = 0;
     var cannonSprite;
+    var state = 0;
     
 
     window.onload = function(){
+        state = 1;
         canvas = document.getElementById("canvas");
         //window.addEventListener('resize', resizeCanvas, false);
         //window.addEventListener('orientationchange', resizeCanvas, false);
@@ -51,13 +53,14 @@
 
         canvas.addEventListener('mouseup', function(e) {
             mouseDown = false;
-
+            if(state==1)
+                state = 3;
             if(gameOver) {
                 console.log("gameover");
                 bullets = [];
                 obsticals = [];
                 addObstical();
-                setTimeout(gameOverFalse, 5000);
+                gameOverFalse();
                 
             }
 
@@ -95,10 +98,12 @@
     }
 
     function update(){
-        if(gameOver) {
-            drawGameOver();
-        } else {
-            draw();
+        switch(state){
+            case 1: introScreen();
+                    break;
+            case 2: drawGameOver();
+                    break;
+            case 3: draw();        
         }
     }
 
@@ -187,7 +192,7 @@
             && (obstical.x >= cannon.x+10)
             && (obstical.x) <= (cannon.x + cannon.width+43)) {
                 gameOver = true;
-
+                state = 2;
                 if(score >= hiScore)
                     hiScore = score;
                 
@@ -286,13 +291,23 @@
         ctx.font = "30px Arial";
         ctx.fillText("GAME OVER", canvas.width/2, 300);
         ctx.fillStyle = "#555555";
-        ctx.font = "15px Arial";
-        ctx.fillText("game will restart after 5 seconds...", canvas.width/2, 350);
     }
 
     function gameOverFalse(){
         gameOver = false;
         score = 0;
+        state = 1;
+    }
+
+    function introScreen() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.beginPath();
+        ctx.fillStyle = '#000000';
+        ctx.rect(canvas.width/2-100, 272, 200, 50);
+        ctx.stroke();
+        ctx.font = "30px Arial";
+        ctx.fillText("PLAY", canvas.width/2, 300);
+
     }
 
     function randomFromTo(x, y) {
