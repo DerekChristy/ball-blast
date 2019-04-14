@@ -187,21 +187,29 @@
                     obstical.health -= 4;
                     bullets.splice(i, 1);
                     score += 1;
+                    // decrease size on collision
+                if(obstical.radius > 25) {
+                    obsticals[i].radius -= obstical.radius*0.005;
                 }
+                }
+
+                
             }
         }
 
         // Checking collision of obstical and cannon
         for(var i = 0; i < obsticals.length; i++) {
             var obstical = obsticals[i];
+
             if((obstical.y+obstical.radius >= cannon.y+20)
             && (obstical.x >= cannon.x+10)
             && (obstical.x) <= (cannon.x + cannon.width+43)) {
                 gameOver = true;
                 state = 2;
+                
                 if(score >= hiScore)
                     hiScore = score;
-                
+
             }
         }
         
