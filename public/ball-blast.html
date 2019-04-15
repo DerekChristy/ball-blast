@@ -13,7 +13,7 @@
     navigator.serviceWorker && navigator.serviceWorker.register('./sw.js').then(function(registration) {
         console.log('Excellent, registered with scope: ', registration.scope);
     });
-    
+
     var canvas, ctx, firing, mouseDown, cannon;
     var FPS = 50;
     var bullets = [];
@@ -28,6 +28,12 @@
     var obsticalSpawn;
 
     window.onload = function(){
+
+        // load previous hi-score from local storage
+        if(window.localStorage.getItem('hi-score')){
+            hiScore = window.localStorage.getItem('hi-score');
+        }
+
         state = 1;
         canvas = document.getElementById("canvas");
         //window.addEventListener('resize', resizeCanvas, false);
@@ -211,9 +217,10 @@
                 gameOver = true;
                 state = 2;
                 
-                if(score >= hiScore)
+                if(score >= hiScore) {
                     hiScore = score;
-
+                    window.localStorage.setItem('hi-score', hiScore);
+                }
             }
         }
         
@@ -318,6 +325,10 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.beginPath();
         ctx.fillStyle = '#000000';
+        ctx.font = "15px Arial";
+        ctx.fillText("HI-SCORE: ", canvas.width/2-20, 210);
+        ctx.fillText(hiScore, canvas.width/2+40, 210);
+        
         ctx.rect(canvas.width/2-100, 272, 200, 50);
         ctx.stroke();
         ctx.font = "30px Arial";
